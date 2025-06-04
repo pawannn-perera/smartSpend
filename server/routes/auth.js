@@ -5,7 +5,6 @@ import User from "../models/User.js";
 import { authenticateToken } from "../middleware/auth.js";
 import multer from "multer";
 import path from "path";
-import { OAuth2Client } from 'google-auth-library';
 import fs from "fs";
 
 // Configure multer storage
@@ -37,44 +36,47 @@ const upload = multer({
 });
 
 const router = express.Router();
-// @route   POST /api/auth/google
-// @desc    Register or login user with Google
+
+// @route   POST /api/auth/register
+// @desc    Register a user
 // @access  Public
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-router.post("/google", async (req, res) => {
+router.post("/register", async (req, res) => {
   try {
-    const { token } = req.body;
-    const ticket = await client.verifyIdToken({
-      idToken: token,
-      audience: process.env.GOOGLE_CLIENT_ID,
+    const { name, email, password } = req.body;
+
+    // Check if user already exists
+    let user = await User.findOne({ email });
+    if (user) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Create new user
+    user = new User({
+      name,
+      email,
+      password: hashedPassword,
     });
-    const payload = ticket.getPayload();
-    const { email, name } = payload;
 
-let user = await User.findOne({ email });
+    await user.save();
 
-if (!user) {
-  user = new User({
-    name,
-    email,
-  });
-
-  await user.save();
-}
-
-
-
-    const secret = process.env.JWT_SECRET;
-    const googleToken = jwt.sign({ id: user._id, email: user.email }, secret, {
+    // Create JWT
+    const secret =
+      process.env.JWT_SECRET;
+    const token = jwt.sign({ id: user._id, email: user.email }, secret, {
       expiresIn: "7d",
     });
 
     res.status(201).json({
-      token: googleToken,
+      token,
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
+        preferences: user.preferences,
       },
     });
   } catch (error) {
@@ -256,7 +258,7 @@ router.delete("/profile/avatar", authenticateToken, async (req, res) => {
     }
 
     // Remove avatar from user
-    user.avatar = null;
+    user.avatar = undefined;
     await user.save();
 
     res.json({

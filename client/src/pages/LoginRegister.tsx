@@ -10,8 +10,6 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GoogleLogin } from '@react-oauth/google';
-import axios from 'axios';
 
 const images = [
   "https://images.unsplash.com/photo-1529539795054-3c162aab037a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8bG9naW58ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60",
@@ -195,25 +193,6 @@ const LoginRegister: React.FC = () => {
                     ? 'Sign In'
                     : 'Get Started'}
               </button>
-
-
-              <div className="flex justify-center mb-4">
-                <GoogleLogin
-                  onSuccess={async credentialResponse => {
-                    try {
-                      const res = await axios.post('/api/auth/google', {
-                        token: credentialResponse.credential,
-                      });
-                      login(res.data.user.email, "", credentialResponse.credential);
-                    } catch (error) {
-                      console.error("Google login error:", error);
-                    }
-                  }}
-                  onError={() => {
-                    console.log('Login Failed');
-                  }}
-                />
-              </div>
 
               <p className="text-center text-sm text-gray-600 mt-4">
                 {tab === 'login' ? (

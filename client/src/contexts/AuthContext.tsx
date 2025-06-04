@@ -20,7 +20,7 @@ interface AuthContextType {
   token: string | null;
   loading: boolean;
   error: string | null;
-  login: (email: string, password: string, googleToken?: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   updateProfile: (data: FormData) => Promise<void>;
@@ -38,7 +38,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Setup axios defaults
   useEffect(() => {
-    axios.defaults.baseURL = import.meta.env.VITE_API_ENDPOINT || 'http://localhost:5000';
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     } else {
@@ -69,23 +68,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loadUser();
   }, [token]);
 
-  const login = async (email: string, password: string, googleToken?: string) => {
+  const login = async (email: string, password: string) => {
     setLoading(true);
     setError(null);
-
+    
     try {
-      let res;
-      if (email === "" && password === "" && googleToken) {
-        res = await axios.post('/api/auth/google', { token: googleToken });
-      } else {
-        res = await axios.post('/api/auth/login', { email, password });
-      }
-
+      const res = await axios.post('/api/auth/login', { email, password });
+      
       localStorage.setItem('token', res.data.token);
       setToken(res.data.token);
       setUser(res.data.user);
-      toast.success('Logged in successfully');
       navigate('/');
+      toast.success('Logged in successfully');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed');
       toast.error(err.response?.data?.message || 'Login failed');
