@@ -59,7 +59,7 @@ const WarrantyModal: React.FC<WarrantyModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white rounded-xl shadow-xl border border-slate-200 p-4 sm:p-6 max-w-2xl w-full">
+      <div className="bg-white rounded-xl shadow-xl border border-slate-200 p-4 sm:p-6 sm:max-w-2xl w-full">
         <header className="mb-6">
           <h2 className="text-2xl font-bold text-slate-800">
             {formData.productName ? "Edit Warranty" : "Add New Warranty"}

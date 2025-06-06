@@ -35,7 +35,7 @@ const LogoutConfirmModal: React.FC<LogoutConfirmModalProps> = ({
           <motion.div
             role="dialog"
             aria-modal="true"
-            className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-2xl max-w-md w-full border border-zinc-200 dark:border-zinc-700"
+            className="bg-white dark:bg-zinc-900 p-6 rounded-2xl shadow-2xl sm:max-w-md w-full border border-zinc-200 dark:border-zinc-700"
             initial={{ y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 40, opacity: 0 }}

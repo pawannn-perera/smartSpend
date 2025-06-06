@@ -47,7 +47,7 @@ const WarrantyDetailModal: React.FC<WarrantyDetailModalProps> = ({ isOpen, onClo
           <div className="flex items-center justify-center h-full w-full"> {/* Removed p-4 from here */}
             <motion.div
               key="modal"
-              className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden m-4" /* Added margin here instead of padding on parent */
+              className="bg-white rounded-xl shadow-2xl w-full sm:max-w-lg max-h-[90vh] flex flex-col overflow-hidden m-4" /* Added margin here instead of padding on parent */
               onClick={(e) => e.stopPropagation()} // Prevent click inside modal from closing it
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}

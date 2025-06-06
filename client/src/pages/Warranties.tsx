@@ -1,4 +1,3 @@
-// Warranties.tsx
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Plus, Trash2, AlertCircle, ChevronDown } from "lucide-react";
@@ -220,7 +219,7 @@ const Warranties: React.FC<{}> = () => {
 
   return (
     <div className="space-y-8">
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <header className="flex flex-col sm:flex-row md:flex-row sm:items-center justify-between gap-4">
         <h1 className="text-3xl font-bold text-slate-800">
           Your Warranties
         </h1>
@@ -270,7 +269,7 @@ const Warranties: React.FC<{}> = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
         {sortedWarranties.map((warranty) => {
           const status = getWarrantyStatus(warranty.expirationDate);
           let cardBorderColor = "border-slate-200";

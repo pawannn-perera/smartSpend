@@ -115,7 +115,7 @@ const Expenses: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <header className="flex flex-col sm:flex-row md:flex-row sm:items-center justify-between gap-4">
         <h1 className="text-3xl font-bold text-slate-800">
           Your Expenses
         </h1>

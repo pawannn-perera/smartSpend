@@ -57,7 +57,7 @@ const BillModal: React.FC<BillModalProps> = ({
         name: "",
         amount: "",
         dueDate: new Date().toISOString().split("T")[0],
-        category: "Other",
+        category: "Other Utilities",
       });
     }
   }, [initialData]);
@@ -104,7 +104,7 @@ const BillModal: React.FC<BillModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white rounded-xl shadow-xl border border-slate-200 p-6 sm:p-8 max-w-2xl w-full">
+      <div className="bg-white rounded-xl shadow-xl border border-slate-200 p-6 sm:p-8 sm:max-w-2xl w-full">
         <header className="mb-6">
           <h2 className="text-2xl font-bold text-slate-800">
             {initialData ? "Edit Bill" : "Add New Bill"}

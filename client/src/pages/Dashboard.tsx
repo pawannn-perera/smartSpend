@@ -169,7 +169,7 @@ const Dashboard: React.FC = () => {
         </header>
 
         {/* Stats Grid */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
           {[
             {
               icon: <DollarSign className="w-6 h-6 text-indigo-500" />,
@@ -228,7 +228,7 @@ const Dashboard: React.FC = () => {
         </section>
 
         {/* Charts Section */}
-        <section className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <section className="grid grid-cols-1 md:grid-cols-5 gap-6">
           {/* Monthly Expenses Chart */}
           <div className="lg:col-span-3 bg-white p-6 rounded-xl shadow-lg border border-slate-200">
             <h3 className="text-xl font-semibold text-slate-700 mb-6">
