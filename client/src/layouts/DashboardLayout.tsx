@@ -50,7 +50,7 @@ const DashboardLayout: React.FC = () => {
   const isActive = (path: string) => location.pathname === path;
 
   const sidebarContent = (
-    <div className="flex flex-col h-full bg-slate-800 text-slate-100 px-4 pt-4 pb-6 overflow-y-auto">
+    <div className="flex flex-col h-full bg-slate-800 text-slate-100 px-4 pt-4 pb-6">
       {/* Logo */}
       <div className="flex items-center space-x-3 px-2 mb-8">
         {" "}
@@ -188,7 +188,7 @@ const DashboardLayout: React.FC = () => {
         )}
       </AnimatePresence>
       {/* Desktop Sidebar */}
-      <div className="hidden md:flex md:w-1/4 md:flex-col bg-slate-800 shadow-lg">
+      <div className="hidden md:flex md:w-72 md:flex-col bg-slate-800 shadow-lg">
         {" "}
         {/* Increased width and added shadow */}
         {sidebarContent}
@@ -205,7 +205,7 @@ const DashboardLayout: React.FC = () => {
             <Menu className="w-6 h-6" /> {/* Increased icon size */}
           </button>
         </div>
-        <main className="flex-1 overflow-y-auto bg-slate-100 p-2 sm:p-4 md:p-6 lg:p-8 transition-all duration-300 ease-in-out">
+        <main className="flex-1 overflow-y-auto bg-slate-100 p-4 sm:p-6 lg:p-8 transition-all duration-300 ease-in-out">
           {" "}
           {/* Changed bg-gray-50, updated padding to match Dashboard.tsx */}
           <Outlet />
