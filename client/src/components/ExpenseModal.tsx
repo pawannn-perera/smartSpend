@@ -18,21 +18,27 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
     description: "",
     amount: "",
     date: new Date().toISOString().split("T")[0],
-    category: "Other",
+    category: "Groceries",
     notes: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const categories = [
-    "Food",
+    "Groceries",
+    "Dining Out",
     "Transportation",
-    "Housing",
-    "Utilities",
-    "Entertainment",
-    "Healthcare",
+    "Fuel",
+    "Public Transit",
     "Shopping",
-    "Other",
+    "Entertainment",
+    "Travel",
+    "Health & Fitness",
+    "Subscriptions",
+    "Gifts & Donations",
+    "Education",
+    "Personal Care",
+    "Miscellaneous",
   ];
 
   useEffect(() => {
@@ -51,7 +57,7 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({
         description: "",
         amount: "",
         date: new Date().toISOString().split("T")[0],
-        category: "Other",
+        category: "Groceries",
         notes: "",
       });
     }

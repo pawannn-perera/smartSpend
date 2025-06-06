@@ -8,7 +8,12 @@ interface BillModalProps {
   initialData?: BillFormData;
 }
 
-const BillModal: React.FC<BillModalProps> = ({ isOpen, onClose, onSubmit, initialData }) => {
+const BillModal: React.FC<BillModalProps> = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  initialData,
+}) => {
   const [formData, setFormData] = useState<BillFormData>({
     name: "",
     amount: "",
@@ -19,13 +24,21 @@ const BillModal: React.FC<BillModalProps> = ({ isOpen, onClose, onSubmit, initia
   const [error, setError] = useState("");
 
   const categories = [
-    "Utilities",
-    "Rent/Mortgage",
-    "Insurance",
-    "Subscriptions",
-    "Credit Card",
-    "Phone/Internet",
-    "Other",
+    "Rent / Mortgage",
+    "Electricity",
+    "Water",
+    "Internet",
+    "Mobile Phone",
+    "Streaming Services",
+    "Credit Card Payments",
+    "Loan Payments",
+    "Insurance (Health/Auto/Home)",
+    "Gym Membership",
+    "School Tuition / Fees",
+    "Cloud / SaaS Services",
+    "Taxes",
+    "Security / Alarm Services",
+    "Other Utilities",
   ];
 
   useEffect(() => {
@@ -33,7 +46,9 @@ const BillModal: React.FC<BillModalProps> = ({ isOpen, onClose, onSubmit, initia
       setFormData({
         name: initialData.name,
         amount: initialData.amount,
-        dueDate: initialData.dueDate ? new Date(initialData.dueDate).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+        dueDate: initialData.dueDate
+          ? new Date(initialData.dueDate).toISOString().split("T")[0]
+          : new Date().toISOString().split("T")[0],
         category: initialData.category,
         isPaid: initialData.isPaid,
       });
@@ -91,17 +106,31 @@ const BillModal: React.FC<BillModalProps> = ({ isOpen, onClose, onSubmit, initia
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white rounded-xl shadow-xl border border-slate-200 p-6 sm:p-8 max-w-2xl w-full">
         <header className="mb-6">
-          <h2 className="text-2xl font-bold text-slate-800">{initialData ? "Edit Bill" : "Add New Bill"}</h2>
+          <h2 className="text-2xl font-bold text-slate-800">
+            {initialData ? "Edit Bill" : "Add New Bill"}
+          </h2>
         </header>
 
         {error && (
           <div className="mb-6 bg-red-50 border-l-4 border-red-400 p-4 rounded-md shadow">
             <div className="flex items-start space-x-3">
-              <svg className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm0-3.992a.75.75 0 00.75-.75V9.75a.75.75 0 00-1.5 0v3.508a.75.75 0 00.75.75zm.008-5.008a.75.75 0 100-1.5.75.75 0 000 1.5z" clipRule="evenodd" />
+              <svg
+                className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm0-3.992a.75.75 0 00.75-.75V9.75a.75.75 0 00-1.5 0v3.508a.75.75 0 00.75.75zm.008-5.008a.75.75 0 100-1.5.75.75 0 000 1.5z"
+                  clipRule="evenodd"
+                />
               </svg>
               <div>
-                <h3 className="text-sm font-semibold text-red-700">Error</h3>
+                <h3 className="text-sm font-semibold text-red-700">
+                  Error
+                </h3>
                 <p className="text-sm text-red-600">{error}</p>
               </div>
             </div>

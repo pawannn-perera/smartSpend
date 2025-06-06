@@ -45,12 +45,18 @@ const Warranties: React.FC<{}> = () => {
   });
 
   const categories = [
-    "Electronics",
-    "Appliances",
+    "Electronics (Phones, Laptops, TVs)",
+    "Home Appliances (Washer, Fridge, etc.)",
     "Furniture",
-    "Automotive",
-    "Tools",
-    "Other",
+    "Automobiles",
+    "Power Tools",
+    "Jewelry & Watches",
+    "Sports Equipment",
+    "Kitchenware",
+    "Clothing & Footwear",
+    "Smart Devices (Smartwatch, Home Assistants)",
+    "Musical Instruments",
+    "Office Equipment",
   ];
 
   useEffect(() => {

@@ -1,55 +1,70 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const expenseSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+    ref: "User",
+    required: true,
   },
   amount: {
     type: Number,
-    required: true
+    required: true,
   },
   description: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
   },
   category: {
     type: String,
     required: true,
-    enum: ["Food",
-    "Transportation",
-    "Housing",
-    "Utilities",
-    "Entertainment",
-    "Healthcare",
-    "Shopping",
-    "Other"]
+    enum: [
+      "Groceries",
+      "Dining Out",
+      "Transportation",
+      "Fuel",
+      "Public Transit",
+      "Shopping",
+      "Entertainment",
+      "Travel",
+      "Health & Fitness",
+      "Subscriptions",
+      "Gifts & Donations",
+      "Education",
+      "Personal Care",
+      "Miscellaneous",
+    ],
   },
   date: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   paymentMethod: {
     type: String,
-    enum: ['Cash', 'Credit Card', 'Debit Card', 'Bank Transfer', 'Mobile Payment', 'Other'],
-    default: 'Other'
+    enum: [
+      "Cash",
+      "Credit Card",
+      "Debit Card",
+      "Bank Transfer",
+      "Mobile Payment",
+      "Other",
+    ],
+    default: "Other",
   },
   receipt: {
     type: String,
-    default: ''
+    default: "",
   },
   notes: {
     type: String,
-    trim: true
-  }
+    trim: true,
+  },
 });
 
 // Index for faster querying
 expenseSchema.index({ user: 1, date: -1 });
 expenseSchema.index({ user: 1, category: 1 });
 
-const Expense = mongoose.model('Expense', expenseSchema);
+const Expense = mongoose.model("Expense", expenseSchema);
 
 export default Expense;
