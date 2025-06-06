@@ -37,9 +37,13 @@ const LoginRegister: React.FC = () => {
         <div className="hidden lg:block relative">
           <AnimatePresence mode="wait">
             <motion.img
+              key={imageUrl}
               src={imageUrl}
               alt="Login Illustration"
               className="absolute inset-0 w-full h-full object-cover"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               transition={{ duration: 1, ease: "easeInOut" }}
             />
           </AnimatePresence>

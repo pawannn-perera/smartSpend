@@ -1,38 +1,33 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import React from "react";
+import { Dispatch, SetStateAction } from "react";
+import WarrantyFormData from "../types/WarrantyFormData";
+import { WarrantyInterface } from "../pages/Warranties";
 
-interface WarrantyFormData {
-  productName: string;
-  expirationDate: string;
-  category: string;
-  purchaseDate?: string;
-  retailer?: string;
+interface WarrantyModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (data: WarrantyFormData) => void;
+  formData: WarrantyFormData;
+  setFormData: Dispatch<SetStateAction<WarrantyFormData>>;
+  categories: string[];
+  error: string;
+  loading: boolean;
+  selectedWarrantyToEdit?: WarrantyInterface | null;
 }
 
-const AddWarranty: React.FC = () => {
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [formData, setFormData] = useState<WarrantyFormData>({
-    productName: "",
-    expirationDate: "",
-    category: "Electronics",
-    purchaseDate: "",
-    retailer: "",
-  });
-
-  const categories = [
-    "Electronics",
-    "Appliances",
-    "Furniture",
-    "Automotive",
-    "Tools",
-    "Other",
-  ];
+const WarrantyModal: React.FC<WarrantyModalProps> = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  formData,
+  setFormData,
+  categories,
+  error,
+  loading,
+}) => {
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -49,39 +44,25 @@ const AddWarranty: React.FC = () => {
       !formData.expirationDate ||
       !formData.category
     ) {
-      setError("Please fill in all required fields");
       return;
     }
 
     try {
-      setLoading(true);
-      setError("");
-
-      await axios.post("/api/warranties", {
-        ...formData,
-        purchaseDate: formData.purchaseDate || undefined,
-        retailer: formData.retailer || undefined,
-      });
-
-      navigate("/warranties");
+      onSubmit(formData);
     } catch (err) {
-      setError("Failed to create warranty");
-      console.error("Error creating warranty:", err);
-    } finally {
-      setLoading(false);
+      console.error("Error submitting warranty:", err);
     }
   };
 
-  return (
-    <div className="max-w-2xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-      <header className="mb-10">
-        <h1 className="text-3xl font-bold text-slate-800">Add New Warranty</h1>
-        <p className="text-md text-slate-600 mt-2">
-          Keep track of your product warranties by adding them here.
-        </p>
-      </header>
+  if (!isOpen) return null;
 
-      <div className="bg-white rounded-xl shadow-xl border border-slate-200 p-6 sm:p-8">
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-white rounded-xl shadow-xl border border-slate-200 p-6 sm:p-8 max-w-2xl w-full">
+        <header className="mb-6">
+          <h2 className="text-2xl font-bold text-slate-800">{formData.productName ? "Edit Warranty" : "Add New Warranty"}</h2>
+        </header>
+
         {error && (
           <div className="mb-6 bg-red-50 border-l-4 border-red-400 p-4 rounded-md shadow">
             <div className="flex items-start space-x-3">
@@ -102,7 +83,7 @@ const AddWarranty: React.FC = () => {
               htmlFor="productName"
               className="block text-sm font-medium text-slate-700 mb-1.5"
             >
-              Product Name <span className="text-red-500">*</span>
+              Product Name
             </label>
             <input
               type="text"
@@ -110,52 +91,10 @@ const AddWarranty: React.FC = () => {
               id="productName"
               value={formData.productName}
               onChange={handleChange}
-              placeholder="e.g., Samsung Galaxy S24"
+              placeholder="e.g., Laptop"
               className="form-input block w-full px-4 py-2.5 border border-slate-300 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out"
               required
             />
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-6">
-            <div>
-              <label
-                htmlFor="category"
-                className="block text-sm font-medium text-slate-700 mb-1.5"
-              >
-                Category <span className="text-red-500">*</span>
-              </label>
-              <select
-                id="category"
-                name="category"
-                value={formData.category}
-                onChange={handleChange}
-                className="form-select block w-full px-4 py-2.5 border border-slate-300 rounded-lg shadow-sm bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out"
-                required
-              >
-                {categories.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label
-                htmlFor="purchaseDate"
-                className="block text-sm font-medium text-slate-700 mb-1.5"
-              >
-                Purchase Date
-              </label>
-              <input
-                type="date"
-                name="purchaseDate"
-                id="purchaseDate"
-                value={formData.purchaseDate}
-                onChange={handleChange}
-                className="form-input block w-full px-4 py-2.5 border border-slate-300 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out"
-              />
-            </div>
           </div>
 
           <div>
@@ -163,7 +102,7 @@ const AddWarranty: React.FC = () => {
               htmlFor="expirationDate"
               className="block text-sm font-medium text-slate-700 mb-1.5"
             >
-              Expiration Date <span className="text-red-500">*</span>
+              Expiration Date
             </label>
             <input
               type="date"
@@ -173,6 +112,45 @@ const AddWarranty: React.FC = () => {
               onChange={handleChange}
               className="form-input block w-full px-4 py-2.5 border border-slate-300 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out"
               required
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="category"
+              className="block text-sm font-medium text-slate-700 mb-1.5"
+            >
+              Category
+            </label>
+            <select
+              id="category"
+              name="category"
+              value={formData.category}
+              onChange={handleChange}
+              className="form-select block w-full px-4 py-2.5 border border-slate-300 rounded-lg shadow-sm bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out"
+            >
+              {categories.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label
+              htmlFor="purchaseDate"
+              className="block text-sm font-medium text-slate-700 mb-1.5"
+            >
+              Purchase Date
+            </label>
+            <input
+              type="date"
+              name="purchaseDate"
+              id="purchaseDate"
+              value={formData.purchaseDate}
+              onChange={handleChange}
+              className="form-input block w-full px-4 py-2.5 border border-slate-300 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out"
             />
           </div>
 
@@ -189,7 +167,24 @@ const AddWarranty: React.FC = () => {
               id="retailer"
               value={formData.retailer}
               onChange={handleChange}
-              placeholder="e.g., Amazon, Best Buy"
+              placeholder="e.g., Amazon"
+              className="form-input block w-full px-4 py-2.5 border border-slate-300 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="notes"
+              className="block text-sm font-medium text-slate-700 mb-1.5"
+            >
+              Notes
+            </label>
+            <textarea
+              name="notes"
+              id="notes"
+              value={formData.notes}
+              onChange={handleChange}
+              placeholder="e.g., Extended warranty"
               className="form-input block w-full px-4 py-2.5 border border-slate-300 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out"
             />
           </div>
@@ -197,7 +192,7 @@ const AddWarranty: React.FC = () => {
           <div className="pt-4 flex justify-end space-x-3">
             <button
               type="button"
-              onClick={() => navigate("/warranties")}
+              onClick={onClose}
               className="px-5 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-150 ease-in-out shadow-sm"
             >
               Cancel
@@ -207,7 +202,7 @@ const AddWarranty: React.FC = () => {
               disabled={loading}
               className="inline-flex items-center justify-center px-5 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors duration-150 ease-in-out shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed text-sm"
             >
-              {loading ? "Creating..." : "Create Warranty"}
+              {loading ? "Submitting..." : "Submit"}
             </button>
           </div>
         </form>
@@ -216,4 +211,4 @@ const AddWarranty: React.FC = () => {
   );
 };
 
-export default AddWarranty;
+export default WarrantyModal;

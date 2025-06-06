@@ -1,59 +1,51 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
+import BillFormData from "../types/BillFormData";
 
-interface ExpenseFormData {
-  description: string;
-  amount: string;
-  date: string;
-  category: string;
+interface BillModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (data: BillFormData) => void;
+  initialData?: BillFormData;
 }
 
-const EditExpense: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [formData, setFormData] = useState<ExpenseFormData>({
-    description: "",
+const BillModal: React.FC<BillModalProps> = ({ isOpen, onClose, onSubmit, initialData }) => {
+  const [formData, setFormData] = useState<BillFormData>({
+    name: "",
     amount: "",
-    date: new Date().toISOString().split("T")[0],
+    dueDate: new Date().toISOString().split("T")[0],
     category: "Other",
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const categories = [
-    "Food",
-    "Transportation",
-    "Housing",
     "Utilities",
-    "Entertainment",
-    "Healthcare",
-    "Shopping",
+    "Rent/Mortgage",
+    "Insurance",
+    "Subscriptions",
+    "Credit Card",
+    "Phone/Internet",
     "Other",
   ];
 
   useEffect(() => {
-    fetchExpense();
-  }, []);
-
-  const fetchExpense = async () => {
-    try {
-      const response = await axios.get(`/api/expenses/${id}`);
-      const expense = response.data;
+    if (initialData) {
       setFormData({
-        description: expense.description,
-        amount: expense.amount.toString(),
-        date: new Date(expense.date).toISOString().split("T")[0],
-        category: expense.category,
+        name: initialData.name,
+        amount: initialData.amount,
+        dueDate: initialData.dueDate ? new Date(initialData.dueDate).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+        category: initialData.category,
+        isPaid: initialData.isPaid,
       });
-      setError("");
-    } catch (err) {
-      setError("Failed to fetch expense");
-      console.error("Error fetching expense:", err);
-    } finally {
-      setLoading(false);
+    } else {
+      setFormData({
+        name: "",
+        amount: "",
+        dueDate: new Date().toISOString().split("T")[0],
+        category: "Other",
+      });
     }
-  };
+  }, [initialData]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -69,9 +61,9 @@ const EditExpense: React.FC = () => {
     e.preventDefault();
 
     if (
-      !formData.description ||
+      !formData.name ||
       !formData.amount ||
-      !formData.date ||
+      !formData.dueDate ||
       !formData.category
     ) {
       setError("Please fill in all fields");
@@ -81,39 +73,27 @@ const EditExpense: React.FC = () => {
     try {
       setLoading(true);
       setError("");
-
-      await axios.put(`/api/expenses/${id}`, {
+      onSubmit({
         ...formData,
-        amount: parseFloat(formData.amount),
+        amount: parseFloat(formData.amount as string),
       });
-
-      navigate("/expenses");
     } catch (err) {
-      setError("Failed to update expense");
-      console.error("Error updating expense:", err);
+      setError("Failed to submit bill");
+      console.error("Error submitting bill:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading && !formData.description) { // Keep loading indicator if fetching initial data
-    return (
-      <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-indigo-500"></div>
-      </div>
-    );
-  }
+  if (!isOpen) return null;
 
   return (
-    <div className="max-w-2xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-      <header className="mb-10">
-        <h1 className="text-3xl font-bold text-slate-800">Edit Expense</h1>
-        <p className="text-md text-slate-600 mt-2">
-          Modify the details of your existing expense.
-        </p>
-      </header>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-white rounded-xl shadow-xl border border-slate-200 p-6 sm:p-8 max-w-2xl w-full">
+        <header className="mb-6">
+          <h2 className="text-2xl font-bold text-slate-800">{initialData ? "Edit Bill" : "Add New Bill"}</h2>
+        </header>
 
-      <div className="bg-white rounded-xl shadow-xl border border-slate-200 p-6 sm:p-8">
         {error && (
           <div className="mb-6 bg-red-50 border-l-4 border-red-400 p-4 rounded-md shadow">
             <div className="flex items-start space-x-3">
@@ -131,18 +111,18 @@ const EditExpense: React.FC = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label
-              htmlFor="description"
+              htmlFor="name"
               className="block text-sm font-medium text-slate-700 mb-1.5"
             >
-              Description
+              Bill Name
             </label>
             <input
               type="text"
-              name="description"
-              id="description"
-              value={formData.description}
+              name="name"
+              id="name"
+              value={formData.name}
               onChange={handleChange}
-              placeholder="e.g., Groceries for the week"
+              placeholder="e.g., Monthly Electricity Bill"
               className="form-input block w-full px-4 py-2.5 border border-slate-300 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out"
               required
             />
@@ -176,16 +156,16 @@ const EditExpense: React.FC = () => {
 
           <div>
             <label
-              htmlFor="date"
+              htmlFor="dueDate"
               className="block text-sm font-medium text-slate-700 mb-1.5"
             >
-              Date
+              Due Date
             </label>
             <input
               type="date"
-              name="date"
-              id="date"
-              value={formData.date}
+              name="dueDate"
+              id="dueDate"
+              value={formData.dueDate}
               onChange={handleChange}
               className="form-input block w-full px-4 py-2.5 border border-slate-300 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out"
               required
@@ -217,17 +197,17 @@ const EditExpense: React.FC = () => {
           <div className="pt-4 flex justify-end space-x-3">
             <button
               type="button"
-              onClick={() => navigate("/expenses")}
+              onClick={onClose}
               className="px-5 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-150 ease-in-out shadow-sm"
             >
               Cancel
             </button>
             <button
               type="submit"
-              disabled={loading && formData.description !== ""} // Disable only during actual submission, not initial load
+              disabled={loading}
               className="inline-flex items-center justify-center px-5 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors duration-150 ease-in-out shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed text-sm"
             >
-              {loading && formData.description !== "" ? "Updating..." : "Update Expense"}
+              {loading ? "Submitting..." : "Submit"}
             </button>
           </div>
         </form>
@@ -236,4 +216,4 @@ const EditExpense: React.FC = () => {
   );
 };
 
-export default EditExpense;
+export default BillModal;

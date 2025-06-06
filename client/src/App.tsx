@@ -1,17 +1,9 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import DashboardLayout from "./layouts/DashboardLayout";
 import Dashboard from "./pages/Dashboard";
 import Expenses from "./pages/Expenses";
-import AddExpense from "./pages/AddExpense";
-import EditExpense from "./pages/EditExpense";
 import Bills from "./pages/Bills";
-import AddBill from "./pages/AddBill";
-import EditBill from "./pages/EditBill";
-import Warranties from "./pages/Warranties";
-import AddWarranty from "./pages/AddWarranty";
-import EditWarranty from "./pages/EditWarranty";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
+import { Warranties } from "./pages/Warranties";
 import NotFound from "./pages/NotFound";
 import PrivateRoute from "./components/PrivateRoute";
 import { useAuth } from "./contexts/AuthContext";
@@ -44,18 +36,14 @@ function App() {
         }
       >
         <Route index element={<Dashboard />} />
-        *
+        {/* Expense Routes */}
         <Route path="expenses" element={<Expenses />} />
-        <Route path="expenses/add" element={<AddExpense />} />
-        <Route path="expenses/:id" element={<EditExpense />} />
+
         {/* Bill Routes */}
         <Route path="bills" element={<Bills />} />
-        <Route path="bills/add" element={<AddBill />} />
-        <Route path="bills/:id" element={<EditBill />} />
+
         {/* Warranty Routes */}
         <Route path="warranties" element={<Warranties />} />
-        <Route path="warranties/add" element={<AddWarranty />} />
-        <Route path="warranties/:id" element={<EditWarranty />} />
         {/* Profile */}
         <Route path="profile" element={<Profile />} />
       </Route>

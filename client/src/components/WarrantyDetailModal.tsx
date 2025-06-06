@@ -1,5 +1,5 @@
 import React from "react";
-import { X, ShieldCheck, CalendarDays, ShoppingBag, Tag, Building } from "lucide-react";
+import { X, ShieldCheck, CalendarDays, ShoppingBag} from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -9,8 +9,6 @@ interface WarrantyInterface {
   expirationDate: string;
   category: string;
   purchaseDate?: string;
-  retailer?: string;
-  // Add notes or other fields here if they exist in your data model
 }
 
 interface WarrantyDetailModalProps {
@@ -91,18 +89,6 @@ const WarrantyDetailModal: React.FC<WarrantyDetailModalProps> = ({ isOpen, onClo
                     value={format(parseISO(warranty.purchaseDate), "MMMM d, yyyy")}
                   />
                 )}
-                {warranty.retailer && (
-                   <DetailItem
-                    icon={<Building className="w-4 h-4" />}
-                    label="Retailer"
-                    value={warranty.retailer}
-                  />
-                )}
-                 <DetailItem
-                    icon={<Tag className="w-4 h-4" />}
-                    label="Category (detail)" // Example if category needs more emphasis or different display
-                    value={warranty.category}
-                />
                 {/* Add more DetailItem components for other fields like notes, serial number, etc. */}
               </div>
             </div>

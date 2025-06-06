@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import axios, { AxiosResponse } from "axios";
 import {
   Plus,
@@ -14,20 +13,9 @@ import {
 } from "lucide-react";
 import { format, parseISO, isPast, addDays } from "date-fns";
 import ConfirmModal from "../components/ConfirmModal";
-
-interface BillInterface {
-  _id: string;
-  name: string;
-  amount: number;
-  dueDate: string;
-  category: string;
-  isPaid: boolean;
-  isRecurring?: boolean;
-  recurringPeriod?: string;
-  reminderDate?: string;
-  notes?: string;
-  user: string;
-}
+import BillInterface from "../types/BillInterface";
+import BillModal from "../components/BillModal";
+import BillFormData from "../types/BillFormData";
 
 const Bills: React.FC = () => {
   const [bills, setBills] = useState<BillInterface[]>([]);
@@ -38,6 +26,8 @@ const Bills: React.FC = () => {
     open: false,
     id: null,
   });
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editBillData, setEditBillData] = useState<BillInterface | null>(null);
 
   const [sortBy, setSortBy] = useState<"dueDate" | "amount" | "status">("dueDate");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
@@ -120,7 +110,7 @@ const Bills: React.FC = () => {
           color: "bg-red-100 text-red-800 border-red-200",
           icon: <XCircle className="w-4 h-4 mr-1.5" />,
         };
-      }
+        }
       if (isPast(addDays(parsedDate, -3))) {
         return {
           text: "Due Soon",
@@ -214,13 +204,13 @@ const Bills: React.FC = () => {
             )}
             {sortOrder === "asc" ? "Asc" : "Desc"}
           </button>
-          <Link
-            to="/bills/add"
+          <button
+            onClick={() => setIsAddModalOpen(true)}
             className="inline-flex items-center px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 text-sm font-medium"
           >
             <Plus className="mr-2 w-5 h-5" />
             Add Bill
-          </Link>
+          </button>
         </div>
       </header>
 
@@ -262,9 +252,12 @@ const Bills: React.FC = () => {
                 return (
                   <tr key={bill._id} className="hover:bg-slate-50 transition-colors group">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
-                       <Link to={`/bills/${bill._id}`} className="hover:text-indigo-600 transition-colors">
+                      <button
+                        onClick={() => setEditBillData(bill)}
+                        className="hover:text-indigo-600 transition-colors"
+                      >
                         {bill.name}
-                      </Link>
+                      </button>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">{bill.category}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">{format(parseISO(bill.dueDate), "MMM d, yyyy")}</td>
@@ -313,8 +306,44 @@ const Bills: React.FC = () => {
         onConfirm={handleDeleteConfirmed}
         message="This action cannot be undone. Do you really want to delete this bill?"
       />
+      {(isAddModalOpen || editBillData) && (
+        <BillModal
+          isOpen={isAddModalOpen || !!editBillData}
+          onClose={() => {
+            setIsAddModalOpen(false);
+            setEditBillData(null);
+          }}
+          onSubmit={handleSubmit}
+          initialData={editBillData ? {
+            name: editBillData.name,
+            amount: editBillData.amount,
+            dueDate: editBillData.dueDate,
+            category: editBillData.category,
+            isPaid: editBillData.isPaid,
+          } : undefined}
+        />
+      )}
     </div>
   );
+
+  async function handleSubmit(data: BillFormData) {
+    try {
+      setLoading(true);
+      if (editBillData) {
+        await axios.put(`/api/bills/${editBillData._id}`, data);
+      } else {
+        await axios.post("/api/bills", data);
+      }
+      await fetchBills();
+    } catch (err) {
+      console.error("Error submitting bill:", err);
+      setError("Failed to submit bill");
+    } finally {
+      setLoading(false);
+      setIsAddModalOpen(false);
+      setEditBillData(null);
+    }
+  }
 };
 
 export default Bills;
