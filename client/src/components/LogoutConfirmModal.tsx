@@ -1,5 +1,5 @@
 // components/LogoutConfirmModal.tsx
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { LogOut } from "lucide-react";
 import { createPortal } from "react-dom";
@@ -16,12 +16,46 @@ const LogoutConfirmModal: React.FC<LogoutConfirmModalProps> = ({
   onCancel,
 }) => {
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  const trapFocus = useCallback(
+    (e: KeyboardEvent) => {
+      if (!modalRef.current) return;
+
+      const focusableElements = modalRef.current.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      const firstFocusableElement = focusableElements[0] as HTMLElement;
+      const lastFocusableElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+      if (e.key === "Tab") {
+        if (e.shiftKey) {
+          if (document.activeElement === firstFocusableElement) {
+            lastFocusableElement.focus();
+            e.preventDefault();
+          }
+        } else {
+          if (document.activeElement === lastFocusableElement) {
+            firstFocusableElement.focus();
+            e.preventDefault();
+          }
+        }
+      }
+    },
+    []
+  );
 
   useEffect(() => {
     if (open && cancelButtonRef.current) {
       cancelButtonRef.current.focus();
     }
-  }, [open]);
+
+    document.addEventListener("keydown", trapFocus);
+
+    return () => {
+      document.removeEventListener("keydown", trapFocus);
+    };
+  }, [open, trapFocus]);
 
   return createPortal(
     <AnimatePresence>
@@ -31,6 +65,8 @@ const LogoutConfirmModal: React.FC<LogoutConfirmModalProps> = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
+          aria-modal="true"
+          role="dialog"
         >
           <motion.div
             role="dialog"
@@ -40,6 +76,7 @@ const LogoutConfirmModal: React.FC<LogoutConfirmModalProps> = ({
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 40, opacity: 0 }}
             transition={{ type: "spring", stiffness: 260, damping: 20 }}
+            ref={modalRef}
           >
             <div className="flex items-start gap-4 mb-5">
               <LogOut className="text-red-500 w-6 h-6 mt-1 shrink-0" />

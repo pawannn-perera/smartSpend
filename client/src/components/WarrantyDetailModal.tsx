@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useEffect, useCallback } from "react";
 import { X, ShieldCheck, CalendarDays, ShoppingBag } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
@@ -42,6 +42,48 @@ const WarrantyDetailModal: React.FC<WarrantyDetailModalProps> = ({
   onClose,
   warranty,
 }) => {
+  const modalRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  const trapFocus = useCallback(
+    (e: KeyboardEvent) => {
+      if (!modalRef.current) return;
+
+      const focusableElements = modalRef.current.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      const firstFocusableElement = focusableElements[0] as HTMLElement;
+      const lastFocusableElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+      if (e.key === "Tab") {
+        if (e.shiftKey) {
+          if (document.activeElement === firstFocusableElement) {
+            lastFocusableElement.focus();
+            e.preventDefault();
+          }
+        } else {
+          if (document.activeElement === lastFocusableElement) {
+            firstFocusableElement.focus();
+            e.preventDefault();
+          }
+        }
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (isOpen && closeButtonRef.current) {
+      closeButtonRef.current.focus();
+    }
+
+    document.addEventListener("keydown", trapFocus);
+
+    return () => {
+      document.removeEventListener("keydown", trapFocus);
+    };
+  }, [isOpen, trapFocus]);
+
   return createPortal(
     <AnimatePresence>
       {isOpen && warranty && (
@@ -53,6 +95,8 @@ const WarrantyDetailModal: React.FC<WarrantyDetailModalProps> = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
+          aria-modal="true"
+          role="dialog"
         >
           {/* New container for centering */}
           <div className="flex items-center justify-center h-full w-full">
@@ -66,6 +110,7 @@ const WarrantyDetailModal: React.FC<WarrantyDetailModalProps> = ({
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
+              ref={modalRef}
             >
               {/* Modal Header */}
               <div className="flex items-center justify-between p-5 border-b border-slate-200">
@@ -79,6 +124,7 @@ const WarrantyDetailModal: React.FC<WarrantyDetailModalProps> = ({
                   onClick={onClose}
                   className="p-1.5 rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   title="Close"
+                  ref={closeButtonRef}
                 >
                   <X className="w-5 h-5" />
                 </button>

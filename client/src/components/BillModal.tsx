@@ -10,6 +10,8 @@ interface BillModalProps {
   initialData?: BillFormData;
 }
 
+import { useRef, useCallback } from "react";
+
 const BillModal: React.FC<BillModalProps> = ({
   isOpen,
   onClose,
@@ -104,12 +106,61 @@ const BillModal: React.FC<BillModalProps> = ({
 
   if (!isOpen) return null;
 
+  const modalRef = useRef<HTMLDivElement>(null);
+  const firstInputRef = useRef<HTMLInputElement>(null);
+
+  const trapFocus = useCallback(
+    (e: KeyboardEvent) => {
+      if (!modalRef.current) return;
+
+      const focusableElements = modalRef.current.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      const firstFocusableElement = focusableElements[0] as HTMLElement;
+      const lastFocusableElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+      if (e.key === "Tab") {
+        if (e.shiftKey) {
+          if (document.activeElement === firstFocusableElement) {
+            (lastFocusableElement as HTMLElement).focus();
+            e.preventDefault();
+          }
+        } else {
+          if (document.activeElement === lastFocusableElement) {
+            (firstFocusableElement as HTMLElement).focus();
+            e.preventDefault();
+          }
+        }
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (isOpen && firstInputRef.current) {
+      firstInputRef.current.focus();
+    }
+
+    document.addEventListener("keydown", trapFocus);
+
+    return () => {
+      document.removeEventListener("keydown", trapFocus);
+    };
+  }, [isOpen, trapFocus]);
+
   return createPortal(
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-        <div className="bg-white rounded-xl shadow-xl border border-slate-200 p-6 sm:p-8 sm:max-w-2xl w-full">
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+        aria-modal="true"
+        role="dialog"
+      >
+        <div
+          className="bg-white rounded-xl shadow-xl border border-slate-200 p-6 sm:p-8 sm:max-w-2xl w-full"
+          ref={modalRef}
+        >
           <header className="mb-6">
-            <h2 className="text-2xl font-bold text-slate-800">
+            <h2 className="text-2xl font-bold text-slate-800" id="modal-title">
               {initialData ? "Edit Bill" : "Add New Bill"}
             </h2>
           </header>
@@ -157,6 +208,7 @@ const BillModal: React.FC<BillModalProps> = ({
                 placeholder="e.g., Monthly Electricity Bill"
                 className="form-input block w-full px-4 py-2.5 border border-slate-300 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out"
                 required
+                ref={firstInputRef}
               />
             </div>
 

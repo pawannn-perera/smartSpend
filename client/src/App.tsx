@@ -9,6 +9,7 @@ import PrivateRoute from "./components/PrivateRoute";
 import { useAuth } from "./contexts/AuthContext";
 import Profile from "./pages/Profile";
 import LoginRegister from "./pages/LoginRegister";
+import About from "./pages/About";
 
 function App() {
   const { loading } = useAuth();
@@ -46,11 +47,13 @@ function App() {
         <Route path="warranties" element={<Warranties />} />
         {/* Profile */}
         <Route path="profile" element={<Profile />} />
+        <Route path="about" element={<About />} />
       </Route>
       {/* 404 */}
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }
+// adding about route
 
 export default App;

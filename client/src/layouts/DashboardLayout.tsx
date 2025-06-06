@@ -8,6 +8,7 @@ import {
   Menu,
   X,
   LogOut,
+  Info,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import LogoutConfirmModal from "../components/LogoutConfirmModal";
@@ -44,6 +45,11 @@ const DashboardLayout: React.FC = () => {
       name: "Warranties",
       path: "/warranties",
       icon: <ShieldCheck className="w-5 h-5" />,
+    },
+    {
+      name: "About",
+      path: "/about",
+      icon: <Info className="w-5 h-5" />,
     },
   ];
 

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useEffect, useCallback } from "react";
 import { Dispatch, SetStateAction } from "react";
 import WarrantyFormData from "../types/WarrantyFormData";
 import { WarrantyInterface } from "../pages/Warranties";
@@ -59,10 +59,59 @@ const WarrantyModal: React.FC<WarrantyModalProps> = ({
 
   if (!isOpen) return null;
 
+  const modalRef = useRef<HTMLDivElement>(null);
+  const firstInputRef = useRef<HTMLInputElement>(null);
+
+  const trapFocus = useCallback(
+    (e: KeyboardEvent) => {
+      if (!modalRef.current) return;
+
+      const focusableElements = modalRef.current.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      const firstFocusableElement = focusableElements[0] as HTMLElement;
+      const lastFocusableElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+
+      if (e.key === "Tab") {
+        if (e.shiftKey) {
+          if (document.activeElement === firstFocusableElement) {
+            lastFocusableElement.focus();
+            e.preventDefault();
+          }
+        } else {
+          if (document.activeElement === lastFocusableElement) {
+            firstFocusableElement.focus();
+            e.preventDefault();
+          }
+        }
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (isOpen && firstInputRef.current) {
+      firstInputRef.current.focus();
+    }
+
+    document.addEventListener("keydown", trapFocus);
+
+    return () => {
+      document.removeEventListener("keydown", trapFocus);
+    };
+  }, [isOpen, trapFocus]);
+
   return createPortal(
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-        <div className="bg-white rounded-xl shadow-xl border border-slate-200 p-4 sm:p-6 sm:max-w-2xl w-full">
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+        aria-modal="true"
+        role="dialog"
+      >
+        <div
+          className="bg-white rounded-xl shadow-xl border border-slate-200 p-4 sm:p-6 sm:max-w-2xl w-full"
+          ref={modalRef}
+        >
           <header className="mb-6">
             <h2 className="text-2xl font-bold text-slate-800">
               {formData.productName ? "Edit Warranty" : "Add New Warranty"}
@@ -112,6 +161,7 @@ const WarrantyModal: React.FC<WarrantyModalProps> = ({
                 placeholder="e.g., Laptop"
                 className="form-input block w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition duration-150 ease-in-out"
                 required
+                ref={firstInputRef}
               />
             </div>
 
