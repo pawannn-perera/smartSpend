@@ -75,7 +75,7 @@ router.post('/', async (req, res) => {
     res.status(201).json(expense);
   } catch (error) {
     console.error('Create expense error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 
@@ -128,7 +128,7 @@ router.put('/:id', async (req, res) => {
     res.json(updatedExpense);
   } catch (error) {
     console.error('Update expense error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 

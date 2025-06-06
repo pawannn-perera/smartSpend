@@ -8,9 +8,14 @@ interface ExpenseModalProps {
   initialData?: ExpenseFormData;
 }
 
-const ExpenseModal: React.FC<ExpenseModalProps> = ({ isOpen, onClose, onSubmit, initialData }) => {
+const ExpenseModal: React.FC<ExpenseModalProps> = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  initialData,
+}) => {
   const [formData, setFormData] = useState<ExpenseFormData>({
-    name: "",
+    description: "",
     amount: "",
     date: new Date().toISOString().split("T")[0],
     category: "Other",
@@ -22,7 +27,10 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({ isOpen, onClose, onSubmit, 
   const categories = [
     "Food",
     "Transportation",
+    "Housing",
+    "Utilities",
     "Entertainment",
+    "Healthcare",
     "Shopping",
     "Other",
   ];
@@ -30,15 +38,17 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({ isOpen, onClose, onSubmit, 
   useEffect(() => {
     if (initialData) {
       setFormData({
-        name: initialData.name,
+        description: initialData.description,
         amount: initialData.amount,
-        date: initialData.date ? new Date(initialData.date).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+        date: initialData.date
+          ? new Date(initialData.date).toISOString().split("T")[0]
+          : new Date().toISOString().split("T")[0],
         category: initialData.category,
         notes: initialData.notes,
       });
     } else {
       setFormData({
-        name: "",
+        description: "",
         amount: "",
         date: new Date().toISOString().split("T")[0],
         category: "Other",
@@ -48,7 +58,9 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({ isOpen, onClose, onSubmit, 
   }, [initialData]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -61,7 +73,7 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({ isOpen, onClose, onSubmit, 
     e.preventDefault();
 
     if (
-      !formData.name ||
+      !formData.description ||
       !formData.amount ||
       !formData.date ||
       !formData.category
@@ -91,17 +103,31 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({ isOpen, onClose, onSubmit, 
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white rounded-xl shadow-xl border border-slate-200 p-6 sm:p-8 max-w-2xl w-full">
         <header className="mb-6">
-          <h2 className="text-2xl font-bold text-slate-800">{initialData ? "Edit Expense" : "Add New Expense"}</h2>
+          <h2 className="text-2xl font-bold text-slate-800">
+            {initialData ? "Edit Expense" : "Add New Expense"}
+          </h2>
         </header>
 
         {error && (
           <div className="mb-6 bg-red-50 border-l-4 border-red-400 p-4 rounded-md shadow">
             <div className="flex items-start space-x-3">
-              <svg className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm0-3.992a.75.75 0 00.75-.75V9.75a.75.75 0 00-1.5 0v3.508a.75.75 0 00.75.75zm.008-5.008a.75.75 0 100-1.5.75.75 0 000 1.5z" clipRule="evenodd" />
+              <svg
+                className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm0-3.992a.75.75 0 00.75-.75V9.75a.75.75 0 00-1.5 0v3.508a.75.75 0 00.75.75zm.008-5.008a.75.75 0 100-1.5.75.75 0 000 1.5z"
+                  clipRule="evenodd"
+                />
               </svg>
               <div>
-                <h3 className="text-sm font-semibold text-red-700">Error</h3>
+                <h3 className="text-sm font-semibold text-red-700">
+                  Error
+                </h3>
                 <p className="text-sm text-red-600">{error}</p>
               </div>
             </div>
@@ -114,13 +140,13 @@ const ExpenseModal: React.FC<ExpenseModalProps> = ({ isOpen, onClose, onSubmit, 
               htmlFor="name"
               className="block text-sm font-medium text-slate-700 mb-1.5"
             >
-              Expense Name
+              Expense Description
             </label>
             <input
               type="text"
-              name="name"
-              id="name"
-              value={formData.name}
+              name="description"
+              id="description"
+              value={formData.description}
               onChange={handleChange}
               placeholder="e.g., Groceries"
               className="form-input block w-full px-4 py-2.5 border border-slate-300 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out"

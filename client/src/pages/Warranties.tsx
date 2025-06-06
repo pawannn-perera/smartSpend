@@ -37,14 +37,21 @@ const Warranties: React.FC<{}> = () => {
     useState<WarrantyInterface | null>(null);
   const [formData, setFormData] = useState<WarrantyFormData>({
     productName: "",
-    expirationDate: new Date().toISOString().split("T")[0],
+    expirationDate: "",
     category: "Electronics",
     purchaseDate: "",
     retailer: "",
     notes: "",
   });
 
-  const categories = ["Electronics", "Appliances", "Furniture", "Other"];
+  const categories = [
+    "Electronics",
+    "Appliances",
+    "Furniture",
+    "Automotive",
+    "Tools",
+    "Other",
+  ];
 
   useEffect(() => {
     fetchWarranties();
@@ -66,7 +73,7 @@ const Warranties: React.FC<{}> = () => {
     } finally {
       setLoading(false);
     }
-  return [];
+    return [];
   };
 
   const confirmDelete = (id: string) => {
@@ -175,12 +182,15 @@ const Warranties: React.FC<{}> = () => {
       setIsEditModalOpen(false);
       setSelectedWarrantyToEdit(null);
       if (selectedWarrantyForDetail) {
-        const updatedDetail = updatedWarranties.find(w => w._id === selectedWarrantyForDetail._id) || null;
+        const updatedDetail =
+          updatedWarranties.find(
+            (w) => w._id === selectedWarrantyForDetail._id
+          ) || null;
         setSelectedWarrantyForDetail(updatedDetail);
       }
       setFormData({
         productName: "",
-        expirationDate: new Date().toISOString().split("T")[0],
+        expirationDate: "",
         category: "Electronics",
         purchaseDate: "",
         retailer: "",
@@ -223,7 +233,17 @@ const Warranties: React.FC<{}> = () => {
             <ChevronDown className="w-5 h-5 absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
           </div>
           <button
-            onClick={() => setIsAddModalOpen(true)}
+            onClick={() => {
+              setIsAddModalOpen(true);
+              setFormData({
+                productName: "",
+                expirationDate: "",
+                category: "Electronics",
+                purchaseDate: "",
+                retailer: "",
+                notes: "",
+              });
+            }}
             className="inline-flex items-center px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 text-sm font-medium"
           >
             <Plus className="mr-2 w-5 h-5" />
@@ -271,7 +291,7 @@ const Warranties: React.FC<{}> = () => {
                           ? new Date(warranty.expirationDate)
                               .toISOString()
                               .split("T")[0]
-                          : new Date().toISOString().split("T")[0],
+                          : "",
                         category: warranty.category,
                         purchaseDate: warranty.purchaseDate
                           ? new Date(warranty.purchaseDate)

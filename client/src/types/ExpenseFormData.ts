@@ -1,5 +1,5 @@
 interface ExpenseFormData {
-  name: string;
+  description: string;
   amount: string | number;
   date: string;
   category: string;

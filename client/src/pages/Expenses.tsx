@@ -92,9 +92,12 @@ const Expenses: React.FC = () => {
         await axios.post("/api/expenses", data);
       }
       await fetchExpenses();
-    } catch (err) {
-      console.error("Error submitting expense:", err);
+    } catch (error) {
+      console.error("Error submitting expense:", error);
       setError("Failed to submit expense");
+      if (axios.isAxiosError(error) && error.response) {
+        console.error("Detailed error from server:", error.response.data);
+      }
     } finally {
       setLoading(false);
       setIsAddModalOpen(false);
@@ -271,7 +274,7 @@ const Expenses: React.FC = () => {
           initialData={
             editExpenseData
               ? {
-                  name: editExpenseData.description,
+                  description: editExpenseData.description,
                   amount: editExpenseData.amount,
                   date: editExpenseData.date,
                   category: editExpenseData.category,
