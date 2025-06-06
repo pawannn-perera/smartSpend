@@ -89,7 +89,7 @@ import { errorHandler } from './middleware/errorHandler.js';
 // import { rateLimiter, authLimiter } from './middleware/rateLimiter.js';
 
 // Load environment variables
-dotenv.config();
+dotenv.config({ path: './../.env' });
 
 // Validate environment variables using Zod
 const envSchema = z.object({
