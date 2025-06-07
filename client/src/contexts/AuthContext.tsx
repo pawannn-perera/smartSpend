@@ -81,8 +81,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       navigate('/');
       toast.success('Logged in successfully');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed');
-      toast.error(err.response?.data?.message || 'Login failed');
+      let errorMessage = 'Login failed';
+      if (err.response?.status === 400) {
+        errorMessage = err.response?.data?.message || 'Invalid email or password';
+      } else if (err.response?.status === 500) {
+        errorMessage = 'Server error. Please try again later.';
+      } else {
+        errorMessage = err.response?.data?.message || 'Login failed';
+      }
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -101,8 +109,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       navigate('/');
       toast.success('Account created successfully');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Registration failed');
-      toast.error(err.response?.data?.message || 'Registration failed');
+      let errorMessage = 'Registration failed';
+      if (err.response?.status === 400) {
+        errorMessage = err.response?.data?.message || 'Invalid registration data';
+      } else if (err.response?.status === 500) {
+        errorMessage = 'Server error. Please try again later.';
+      } else {
+        errorMessage = err.response?.data?.message || 'Registration failed';
+      }
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -130,7 +146,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toast.success('Profile updated successfully');
     } catch (err: any) {
       console.error('Profile update error:', err);
-      const errorMessage = err.response?.data?.message || 'Failed to update profile';
+      let errorMessage = 'Failed to update profile';
+      if (err.response?.status === 400) {
+        errorMessage = err.response?.data?.message || 'Invalid profile data';
+      } else if (err.response?.status === 500) {
+        errorMessage = 'Server error. Please try again later.';
+      } else {
+        errorMessage = err.response?.data?.message || 'Failed to update profile';
+      }
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
@@ -148,7 +171,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toast.success('Profile image removed successfully');
     } catch (err: any) {
       console.error('Remove avatar error:', err);
-      const errorMessage = err.response?.data?.message || 'Failed to remove profile image';
+      let errorMessage = 'Failed to remove profile image';
+      if (err.response?.status === 500) {
+        errorMessage = 'Server error. Please try again later.';
+      } else {
+        errorMessage = err.response?.data?.message || 'Failed to remove profile image';
+      }
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {

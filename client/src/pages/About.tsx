@@ -1,7 +1,7 @@
 const About = () => {
   return (
-    <div className="min-h-screen p-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen p-4 sm:p-6">
+      <div className="mx-auto">
         {/* Header Section */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-extrabold text-indigo-900 tracking-tight sm:text-5xl">
@@ -80,7 +80,7 @@ const About = () => {
                 below.
               </p>
               <div className="space-y-6">
-                <div className="grid grid-cols-1 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-1 gap-6">
                   <div>
                     <label
                       htmlFor="name"

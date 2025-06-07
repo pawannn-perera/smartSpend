@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import DashboardLayout from "./layouts/DashboardLayout";
 import Dashboard from "./pages/Dashboard";
 import Expenses from "./pages/Expenses";
+import ErrorBoundary from "./components/ErrorBoundary";
 import Bills from "./pages/Bills";
 import { Warranties } from "./pages/Warranties";
 import NotFound from "./pages/NotFound";
@@ -23,9 +24,10 @@ function App() {
   }
 
   return (
-    <Routes>
-      {/* Auth Routes */}
-      <Route path="/login" element={<LoginRegister />} />
+    <ErrorBoundary>
+      <Routes>
+        {/* Auth Routes */}
+        <Route path="/login" element={<LoginRegister />} />
       <Route path="/register" element={<LoginRegister />} />
       {/* Dashboard Routes */}
       <Route
@@ -50,10 +52,11 @@ function App() {
         <Route path="about" element={<About />} />
       </Route>
       {/* 404 */}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </ErrorBoundary>
   );
 }
-// adding about route
+
 
 export default App;
