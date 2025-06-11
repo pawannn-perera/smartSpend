@@ -4,13 +4,14 @@ import Dashboard from "./pages/Dashboard";
 import Expenses from "./pages/Expenses";
 import ErrorBoundary from "./components/ErrorBoundary";
 import Bills from "./pages/Bills";
-import { Warranties } from "./pages/Warranties";
+
 import NotFound from "./pages/NotFound";
 import PrivateRoute from "./components/PrivateRoute";
 import { useAuth } from "./contexts/AuthContext";
 import Profile from "./pages/Profile";
 import LoginRegister from "./pages/LoginRegister";
 import About from "./pages/About";
+import Warranties from "./pages/Warranties";
 
 function App() {
   const { loading } = useAuth();
@@ -46,7 +47,7 @@ function App() {
         <Route path="bills" element={<Bills />} />
 
         {/* Warranty Routes */}
-        <Route path="warranties" element={<Warranties />} />
+         <Route path="/warranties" element={<Warranties />} />
         {/* Profile */}
         <Route path="profile" element={<Profile />} />
         <Route path="about" element={<About />} />

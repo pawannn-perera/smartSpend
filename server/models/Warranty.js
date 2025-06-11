@@ -26,6 +26,10 @@ const warrantySchema = new mongoose.Schema({
   purchasePrice: {
     type: Number,
   },
+  currency: {
+    type: String,
+    default: "USD",
+  },
   category: {
     type: String,
     enum: [

@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import BillFormData from "../types/BillFormData";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { createPortal } from "react-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { X, AlertCircle, DollarSign, Calendar, Receipt, Tag } from "lucide-react";
 
 interface BillModalProps {
   isOpen: boolean;
@@ -10,7 +12,12 @@ interface BillModalProps {
   initialData?: BillFormData;
 }
 
-import { useRef, useCallback } from "react";
+interface FormErrors {
+  name?: string;
+  amount?: string;
+  dueDate?: string;
+  category?: string;
+}
 
 const BillModal: React.FC<BillModalProps> = ({
   isOpen,
@@ -18,14 +25,18 @@ const BillModal: React.FC<BillModalProps> = ({
   onSubmit,
   initialData,
 }) => {
+  const { user } = useAuth();
   const [formData, setFormData] = useState<BillFormData>({
     name: "",
     amount: "",
     dueDate: new Date().toISOString().split("T")[0],
-    category: "Other",
+    category: "Other Utilities",
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState<FormErrors>({});
+
+  const modalRef = useRef<HTMLDivElement>(null);
+  const firstInputRef = useRef<HTMLInputElement>(null);
 
   const categories = [
     "Rent / Mortgage",
@@ -45,6 +56,7 @@ const BillModal: React.FC<BillModalProps> = ({
     "Other Utilities",
   ];
 
+  // Initialize form data
   useEffect(() => {
     if (initialData) {
       setFormData({
@@ -64,8 +76,39 @@ const BillModal: React.FC<BillModalProps> = ({
         category: "Other Utilities",
       });
     }
-  }, [initialData]);
+    setErrors({});
+  }, [initialData, isOpen]);
 
+  // Form validation
+  const validateForm = useCallback((): boolean => {
+    const newErrors: FormErrors = {};
+
+    if (!formData.name.trim()) {
+      newErrors.name = "Bill name is required";
+    }
+
+    if (!formData.amount || parseFloat(formData.amount as string) <= 0) {
+      newErrors.amount = "Please enter a valid amount";
+    }
+
+    if (!formData.dueDate) {
+      newErrors.dueDate = "Due date is required";
+    } else {
+      const dueDate = new Date(formData.dueDate);
+      if (isNaN(dueDate.getTime())) {
+        newErrors.dueDate = "Please enter a valid date";
+      }
+    }
+
+    if (!formData.category) {
+      newErrors.category = "Please select a category";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }, [formData]);
+
+  // Handle input changes
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -74,229 +117,329 @@ const BillModal: React.FC<BillModalProps> = ({
       ...prev,
       [name]: value,
     }));
+
+    // Clear field-specific error when user starts typing
+    if (errors[name as keyof FormErrors]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: undefined,
+      }));
+    }
   };
 
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (
-      !formData.name ||
-      !formData.amount ||
-      !formData.dueDate ||
-      !formData.category
-    ) {
-      setError("Please fill in all fields");
+    if (!validateForm()) {
       return;
     }
 
     try {
       setLoading(true);
-      setError("");
-      onSubmit({
+      await onSubmit({
         ...formData,
         amount: parseFloat(formData.amount as string),
       });
+      onClose();
     } catch (err) {
-      setError("Failed to submit bill");
       console.error("Error submitting bill:", err);
+      setErrors({ name: "Failed to submit bill. Please try again." });
     } finally {
       setLoading(false);
     }
   };
 
-  if (!isOpen) return null;
+  // Focus trap for accessibility
+  const trapFocus = useCallback((e: KeyboardEvent) => {
+    if (!modalRef.current) return;
 
-  const modalRef = useRef<HTMLDivElement>(null);
-  const firstInputRef = useRef<HTMLInputElement>(null);
+    const focusableElements = modalRef.current.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    const firstFocusableElement = focusableElements[0] as HTMLElement;
+    const lastFocusableElement = focusableElements[focusableElements.length - 1] as HTMLElement;
 
-  const trapFocus = useCallback(
-    (e: KeyboardEvent) => {
-      if (!modalRef.current) return;
-
-      const focusableElements = modalRef.current.querySelectorAll(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-      );
-      const firstFocusableElement = focusableElements[0] as HTMLElement;
-      const lastFocusableElement = focusableElements[focusableElements.length - 1] as HTMLElement;
-
-      if (e.key === "Tab") {
-        if (e.shiftKey) {
-          if (document.activeElement === firstFocusableElement) {
-            (lastFocusableElement as HTMLElement).focus();
-            e.preventDefault();
-          }
-        } else {
-          if (document.activeElement === lastFocusableElement) {
-            (firstFocusableElement as HTMLElement).focus();
-            e.preventDefault();
-          }
+    if (e.key === "Tab") {
+      if (e.shiftKey) {
+        if (document.activeElement === firstFocusableElement) {
+          lastFocusableElement.focus();
+          e.preventDefault();
+        }
+      } else {
+        if (document.activeElement === lastFocusableElement) {
+          firstFocusableElement.focus();
+          e.preventDefault();
         }
       }
-    },
-    []
-  );
-
-  useEffect(() => {
-    if (isOpen && firstInputRef.current) {
-      firstInputRef.current.focus();
     }
+  }, []);
 
-    document.addEventListener("keydown", trapFocus);
+  // Handle escape key
+  const handleEscape = useCallback((e: KeyboardEvent) => {
+    if (e.key === "Escape") {
+      onClose();
+    }
+  }, [onClose]);
+
+  // Setup event listeners
+  useEffect(() => {
+    if (isOpen) {
+      document.addEventListener("keydown", trapFocus);
+      document.addEventListener("keydown", handleEscape);
+      document.body.style.overflow = "hidden";
+
+      // Focus first input after animation
+      setTimeout(() => {
+        if (firstInputRef.current) {
+          firstInputRef.current.focus();
+        }
+      }, 100);
+    }
 
     return () => {
       document.removeEventListener("keydown", trapFocus);
+      document.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = "unset";
     };
-  }, [isOpen, trapFocus]);
+  }, [isOpen, trapFocus, handleEscape]);
+
+  if (!isOpen) return null;
 
   return createPortal(
     <AnimatePresence>
-      <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
         aria-modal="true"
         role="dialog"
+        aria-labelledby="modal-title"
+        onClick={onClose}
       >
-        <div
-          className="bg-white rounded-xl shadow-xl border border-slate-200 p-6 sm:p-8 sm:max-w-2xl w-full"
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          transition={{ duration: 0.2 }}
+          className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-2xl max-h-[90vh] overflow-hidden"
           ref={modalRef}
+          onClick={(e) => e.stopPropagation()}
         >
-          <header className="mb-6">
-            <h2 className="text-2xl font-bold text-slate-800" id="modal-title">
-              {initialData ? "Edit Bill" : "Add New Bill"}
-            </h2>
-          </header>
+          {/* Header */}
+          <div className="flex items-center justify-between p-6 border-b border-slate-200 bg-gradient-to-r from-amber-50 to-orange-50">
+            <div className="flex items-center space-x-3">
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 flex items-center justify-center shadow-lg">
+                <Receipt className="w-5 h-5 text-white" />
+              </div>
+              <h2 id="modal-title" className="text-xl font-bold text-slate-800">
+                {initialData ? "Edit Bill" : "Add New Bill"}
+              </h2>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-slate-400 hover:text-slate-600 transition-colors p-2 rounded-lg hover:bg-white/50 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              aria-label="Close modal"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
 
-          {error && (
-            <div className="mb-6 bg-red-50 border-l-4 border-red-400 p-4 rounded-md shadow">
-              <div className="flex items-start space-x-3">
-                <svg
-                  className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm0-3.992a.75.75 0 00.75-.75V9.75a.75.75 0 00-1.5 0v3.508a.75.75 0 00.75.75zm.008-5.008a.75.75 0 100-1.5.75.75 0 000 1.5z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+          {/* Form Content */}
+          <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Bill Name */}
+                <div className="md:col-span-2">
+                  <label
+                    htmlFor="name"
+                    className="block text-sm font-semibold text-slate-700 mb-2"
+                  >
+                    Bill Name *
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Receipt className="h-5 w-5 text-slate-400" />
+                    </div>
+                    <input
+                      type="text"
+                      name="name"
+                      id="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      placeholder="e.g., Monthly Electricity Bill"
+                      className={`form-input block w-full pl-10 pr-3 py-3 border rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent sm:text-sm transition duration-150 ease-in-out ${
+                        errors.name
+                          ? "border-red-300 focus:ring-red-500"
+                          : "border-slate-300 focus:ring-amber-500"
+                      }`}
+                      required
+                      ref={firstInputRef}
+                      aria-invalid={errors.name ? "true" : "false"}
+                      aria-describedby={errors.name ? "name-error" : undefined}
+                    />
+                  </div>
+                  {errors.name && (
+                    <div id="name-error" className="mt-1 flex items-center space-x-1 text-red-600">
+                      <AlertCircle className="w-4 h-4" />
+                      <span className="text-sm">{errors.name}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Amount */}
                 <div>
-                  <h3 className="text-sm font-semibold text-red-700">
-                    Error
-                  </h3>
-                  <p className="text-sm text-red-600">{error}</p>
+                  <label
+                    htmlFor="amount"
+                    className="block text-sm font-semibold text-slate-700 mb-2"
+                  >
+                    Amount *
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <DollarSign className="h-5 w-5 text-slate-400" />
+                    </div>
+                    <input
+                      type="number"
+                      name="amount"
+                      id="amount"
+                      value={formData.amount}
+                      onChange={handleChange}
+                      placeholder="0.00"
+                      step="0.01"
+                      min="0"
+                      className={`form-input block w-full pl-10 pr-3 py-3 border rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent sm:text-sm transition duration-150 ease-in-out ${
+                        errors.amount
+                          ? "border-red-300 focus:ring-red-500"
+                          : "border-slate-300 focus:ring-amber-500"
+                      }`}
+                      required
+                      aria-invalid={errors.amount ? "true" : "false"}
+                      aria-describedby={errors.amount ? "amount-error" : undefined}
+                    />
+                  </div>
+                  {errors.amount && (
+                    <div id="amount-error" className="mt-1 flex items-center space-x-1 text-red-600">
+                      <AlertCircle className="w-4 h-4" />
+                      <span className="text-sm">{errors.amount}</span>
+                    </div>
+                  )}
+                  <p className="mt-1 text-xs text-slate-500">
+                    Currency: {user?.preferences?.currency || "USD"}
+                  </p>
+                </div>
+
+                {/* Due Date */}
+                <div>
+                  <label
+                    htmlFor="dueDate"
+                    className="block text-sm font-semibold text-slate-700 mb-2"
+                  >
+                    Due Date *
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Calendar className="h-5 w-5 text-slate-400" />
+                    </div>
+                    <input
+                      type="date"
+                      name="dueDate"
+                      id="dueDate"
+                      value={formData.dueDate}
+                      onChange={handleChange}
+                      className={`form-input block w-full pl-10 pr-3 py-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:border-transparent sm:text-sm transition duration-150 ease-in-out ${
+                        errors.dueDate
+                          ? "border-red-300 focus:ring-red-500"
+                          : "border-slate-300 focus:ring-amber-500"
+                      }`}
+                      required
+                      aria-invalid={errors.dueDate ? "true" : "false"}
+                      aria-describedby={errors.dueDate ? "dueDate-error" : undefined}
+                    />
+                  </div>
+                  {errors.dueDate && (
+                    <div id="dueDate-error" className="mt-1 flex items-center space-x-1 text-red-600">
+                      <AlertCircle className="w-4 h-4" />
+                      <span className="text-sm">{errors.dueDate}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Category */}
+                <div className="md:col-span-2">
+                  <label
+                    htmlFor="category"
+                    className="block text-sm font-semibold text-slate-700 mb-2"
+                  >
+                    Category *
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Tag className="h-5 w-5 text-slate-400" />
+                    </div>
+                    <select
+                      id="category"
+                      name="category"
+                      value={formData.category}
+                      onChange={handleChange}
+                      className={`form-select block w-full pl-10 pr-3 py-3 border rounded-lg shadow-sm bg-white text-slate-900 focus:outline-none focus:ring-2 focus:border-transparent sm:text-sm transition duration-150 ease-in-out ${
+                        errors.category
+                          ? "border-red-300 focus:ring-red-500"
+                          : "border-slate-300 focus:ring-amber-500"
+                      }`}
+                      required
+                      aria-invalid={errors.category ? "true" : "false"}
+                      aria-describedby={errors.category ? "category-error" : undefined}
+                    >
+                      {categories.map((category) => (
+                        <option key={category} value={category}>
+                          {category}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {errors.category && (
+                    <div id="category-error" className="mt-1 flex items-center space-x-1 text-red-600">
+                      <AlertCircle className="w-4 h-4" />
+                      <span className="text-sm">{errors.category}</span>
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
-          )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label
-                htmlFor="name"
-                className="block text-sm font-medium text-slate-700 mb-1.5"
-              >
-                Bill Name
-              </label>
-              <input
-                type="text"
-                name="name"
-                id="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="e.g., Monthly Electricity Bill"
-                className="form-input block w-full px-4 py-2.5 border border-slate-300 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out"
-                required
-                ref={firstInputRef}
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="amount"
-                className="block text-sm font-medium text-slate-700 mb-1.5"
-              >
-                Amount
-              </label>
-              <div className="relative mt-1 rounded-lg shadow-sm">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <span className="text-slate-500 sm:text-sm">Rs.</span>
-                </div>
-                <input
-                  type="number"
-                  name="amount"
-                  id="amount"
-                  value={formData.amount}
-                  onChange={handleChange}
-                  placeholder="0.00"
-                  step="0.01"
-                  min="0"
-                  className="form-input block w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out"
-                  required
-                />
+              {/* Action Buttons */}
+              <div className="flex justify-end space-x-3 pt-6 border-t border-slate-200">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-6 py-3 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition-colors duration-150 ease-in-out shadow-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-600 text-white font-semibold rounded-lg hover:from-amber-700 hover:to-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition-all duration-150 ease-in-out shadow-lg hover:shadow-xl disabled:opacity-60 disabled:cursor-not-allowed text-sm transform hover:scale-[1.02]"
+                >
+                  {loading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                      {initialData ? "Updating..." : "Creating..."}
+                    </>
+                  ) : (
+                    <>
+                      <Receipt className="w-4 h-4 mr-2" />
+                      {initialData ? "Update Bill" : "Create Bill"}
+                    </>
+                  )}
+                </button>
               </div>
-            </div>
-
-            <div>
-              <label
-                htmlFor="dueDate"
-                className="block text-sm font-medium text-slate-700 mb-1.5"
-              >
-                Due Date
-              </label>
-              <input
-                type="date"
-                name="dueDate"
-                id="dueDate"
-                value={formData.dueDate}
-                onChange={handleChange}
-                className="form-input block w-full px-4 py-2.5 border border-slate-300 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out"
-                required
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="category"
-                className="block text-sm font-medium text-slate-700 mb-1.5"
-              >
-                Category
-              </label>
-              <select
-                id="category"
-                name="category"
-                value={formData.category}
-                onChange={handleChange}
-                className="form-select block w-full px-4 py-2.5 border border-slate-300 rounded-lg shadow-sm bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out"
-              >
-                {categories.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="pt-4 flex justify-end space-x-3">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-5 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-150 ease-in-out shadow-sm"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="inline-flex items-center justify-center px-5 py-2.5 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors duration-150 ease-in-out shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed text-sm"
-              >
-                {loading ? "Submitting..." : "Submit"}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
+            </form>
+          </div>
+        </motion.div>
+      </motion.div>
     </AnimatePresence>,
     document.body
   );

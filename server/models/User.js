@@ -1,46 +1,54 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
   },
   email: {
     type: String,
     required: true,
     unique: true,
     trim: true,
-    lowercase: true
+    lowercase: true,
   },
   password: {
     type: String,
-    required: true
+    // Only required for local signup
+    required: function () {
+      return !this.googleId;
+    },
+  },
+  googleId: {
+    type: String,
+    unique: true,
+    sparse: true, // Allows multiple docs without googleId
   },
   avatar: {
     type: String,
-    default: ''
+    default: "",
   },
   preferences: {
     currency: {
       type: String,
-      default: 'LKR'
+      default: "Rs",
     },
     reminderDaysBefore: {
       type: Number,
-      default: 3
+      default: 3,
     },
     theme: {
       type: String,
-      default: 'light'
-    }
+      default: "light",
+    },
   },
   createdAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model("User", userSchema);
 
 export default User;
