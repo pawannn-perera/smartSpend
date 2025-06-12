@@ -4,12 +4,11 @@ export default {
     content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
   	extend: {
-  		fontFamily: {
-  			sans: [
-  				'Poppins',
-  				'sans-serif'
-  			]
-  		},
+      fontFamily: {
+        'sans': ['Inter', 'system-ui', 'sans-serif'],
+        'display': ['Montserrat', 'sans-serif'],
+        'body': ['Lato', 'sans-serif'],
+      },
   		colors: {
   			'dark-blue': '#1f2937',
   			'deep-purple': '#4c1d95',

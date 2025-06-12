@@ -6,7 +6,23 @@ html,
 body,
 #root {
   height: 100%;
-  font-family: "Poppins", sans-serif;
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Inter", sans-serif;
+}
+
+/* Body text */
+body,
+p,
+span {
+  font-family: "Lato", sans-serif;
 }
 
 @layer base {
